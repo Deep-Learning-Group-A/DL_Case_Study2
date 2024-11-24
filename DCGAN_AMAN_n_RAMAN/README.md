@@ -57,7 +57,7 @@ The models were trained on the Yelp dataset to generate realistic images based o
 
 Below is an example of a generated image from Model 1:
 
-![Generated Image - Model 1](generated_images\generated_image_1.png)
+![Generated Image - Model 1](generated_images/generated_image_1.png)
 
 ---
 
