@@ -1,0 +1,9 @@
+streamlit
+tensorflow
+numpy
+pillow
+torch
+torchvision
+matplotlib
+jsonschema
+gdown
