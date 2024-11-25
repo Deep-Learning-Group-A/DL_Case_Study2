@@ -7,6 +7,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import gdown
 import os
+import pickle
+import ast
 
 def download_vgg_model():
     url = "https://drive.google.com/uc?id=1XZv3yXTwMx6H5uQ2AshkK1cyerYQvoph"
@@ -41,6 +43,60 @@ class Generator(nn.Module):
         return self.gen(x)
 
 # ------------------ Utility Functions ------------------ #
+
+@st.cache_resource
+def load_transformer_model():
+    """Load the transformer model from the SavedModel directory."""
+    model_path = "models\causal_position_transformer"
+    model = tf.saved_model.load(model_path)
+    return model
+
+
+@st.cache_resource
+def load_tokenizer():
+    """Load and validate the tokenizer."""
+    tokenizer_path = "models/tokenizer.pkl"
+    with open(tokenizer_path, "rb") as f:
+        tokenizer = pickle.load(f)
+
+    # Check if word_index is a string and fix it
+    if isinstance(tokenizer.word_index, str):
+        tokenizer.word_index = ast.literal_eval(tokenizer.word_index)
+        #st.write("Fixed tokenizer.word_index from string to dictionary.")
+
+    # Validate tokenizer attributes
+    if not isinstance(tokenizer.word_index, dict):
+        raise ValueError("Tokenizer word_index is not a dictionary.")
+    if not isinstance(tokenizer.oov_token, str):
+        raise ValueError("Tokenizer oov_token is not a string.")
+    
+    return tokenizer
+
+def predict_sentiment(model, text, tokenizer):
+    """Predict sentiment for the given text input."""
+    # # Debugging
+    # st.write(f"Input text: {text}")
+    # st.write(f"Tokenizer word_index type: {type(tokenizer.word_index)}")
+    # st.write(f"Tokenizer oov_token: {tokenizer.oov_token}")
+
+    # Tokenize and pad input text
+    try:
+        sequences = tokenizer.texts_to_sequences([str(text)])  # Tokenize the text
+        # st.write(f"Tokenized sequences: {sequences}")
+    except Exception as e:
+        st.error(f"Error during tokenization: {e}")
+        return None, None, None
+    
+    padded_sequences = tf.keras.preprocessing.sequence.pad_sequences(
+        sequences, maxlen=100, padding="post"
+    )
+
+    # Get predictions from the model
+    outputs = model(padded_sequences)
+    probabilities = tf.nn.softmax(outputs).numpy()
+    predicted_class = np.argmax(probabilities, axis=1)[0]
+    confidence = probabilities[0][predicted_class]
+    return predicted_class, confidence, probabilities
 
 @st.cache_resource
 def load_generator_model():
@@ -120,12 +176,43 @@ def vgg_page():
                 st.write(f"{class_labels[i]}: **{prob * 100:.2f}%**")
 
 
+# ------------------ Sentiment Analysis Page ------------------ #
+
+def sentiment_page():
+    st.title("Transformer Sentiment Detection")
+
+    # Load the model and tokenizer
+    model = load_transformer_model()
+    try:
+        tokenizer = load_tokenizer()
+    except Exception as e:
+        st.error(f"Failed to load tokenizer: {e}")
+        return
+
+    # Get input from the user
+    text_input = st.text_area("Enter text for sentiment analysis:", height=100)
+
+    if st.button("Analyze Sentiment"):
+        # Define labels for sentiment classes (update according to your model)
+        sentiment_labels = {0: "Negative", 1: "Positive", 2: "Neutral"}
+
+        # Tokenize and predict
+        predicted_class, confidence, probabilities = predict_sentiment(model, text_input, tokenizer)
+
+        # Display the result
+        st.write(f"**Prediction:** {sentiment_labels[predicted_class]} with **{confidence * 100:.2f}% confidence**")
+        st.write("**Class Probabilities:**")
+        for i, prob in enumerate(probabilities[0]):
+            st.write(f"{sentiment_labels[i]}: **{prob * 100:.2f}%**")
+
+
 
 # ------------------ App Structure ------------------ #
 
+
 # Sidebar navigation
 st.sidebar.title("Navigation")
-page = st.sidebar.radio("Select a page:", ["Home", "DCGAN Generator", "VGG Model"])
+page = st.sidebar.radio("Select a page:", ["Home", "DCGAN Generator", "VGG Model", "Sentiment Analysis"])
 
 # Render selected page
 if page == "Home":
@@ -134,3 +221,5 @@ elif page == "DCGAN Generator":
     dcgan_page()
 elif page == "VGG Model":
     vgg_page()
+elif page == "Sentiment Analysis":
+    sentiment_page()
