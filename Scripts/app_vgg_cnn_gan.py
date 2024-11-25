@@ -7,7 +7,7 @@ import torch.nn as nn
 import matplotlib.pyplot as plt
 
 st.set_page_config(page_title="Image Classification App", layout="wide")
-st.title("Image Classification with Multiple Models")
+st.title("Deep Learning Case Study 2 - Group A")
 
 # Sidebar navigation
 st.sidebar.title("Navigation")
