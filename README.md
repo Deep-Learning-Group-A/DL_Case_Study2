@@ -60,9 +60,9 @@ This repository showcases two projects focused on image classification, image ge
 ## Results Interpretation
 
 - **Image Classification and Generation**:  
-  - Displays classification predictions and generated images with intuitive visualization.  
+  - Displays classification predictions and generated images.  
 - **Sentiment Prediction Using Transformers**:  
-  - Outputs sentiment predictions with confidence scores for better interpretability.  
+  - Outputs sentiment predictions with confidence scores for better understanding.  
 
 ---
 
