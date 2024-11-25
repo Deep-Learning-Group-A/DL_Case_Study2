@@ -2,3 +2,7 @@ FID Score Base Model: 369.6523
 Inception Score Base Model: 2.1254 ± 0.0471
 FID Score for Tuning 1: 440.4061
 Inception Score for Tuning 1: 1.4904 ± 0.0400
+FID Score for Tuning 2: 167.5063
+Inception Score for Tuning 2: 1.9839 ± 0.0896
+FID Score for Tuning 3: 197.6044
+Inception Score for Tuning 3: 1.6335 ± 0.0524
